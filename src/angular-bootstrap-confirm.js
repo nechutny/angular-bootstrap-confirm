@@ -18,7 +18,7 @@ module.exports = angular
   })
 
   .controller('PopoverConfirmCtrl', function($scope, $rootScope, $element, $attrs, $compile, $document, $window, $timeout,
-                                             $injector, $templateRequest, $parse, $log, $animate, confirmationPopoverDefaults) {
+    $injector, $templateRequest, $parse, $log, $animate, confirmationPopoverDefaults) {
     var vm = this;
     vm.defaults = confirmationPopoverDefaults;
     vm.$attrs = $attrs;
@@ -48,13 +48,32 @@ module.exports = angular
       }
     }
 
-    var popoverLoaded = $templateRequest(templateUrl).then(function(template) {
-      var popover = angular.element(template);
-      popover.css('display', 'none');
-      $compile(popover)(popoverScope);
-      $document.find('body').append(popover);
-      return popover;
-    });
+    var popoverLoaded = new Promise(function() {});
+
+    var popoverElement;
+
+    function createElement() {
+      if (popoverElement) {
+        return Promise.resolve(popoverElement);
+      }
+
+      popoverLoaded = $templateRequest(templateUrl).then(function(template) {
+        var popover = angular.element(template);
+        popover.css('display', 'none');
+        $compile(popover)(popoverScope);
+        $document.find('body').append(popover);
+        return popover;
+      }).then(function(popover) {
+        return new Promise(function(resolve) {
+          popoverElement = popover;
+          setTimeout(function() {
+            resolve(popover);
+          }, 0);
+        });
+      });
+
+      return popoverLoaded;
+    }
 
     vm.isVisible = false;
 
@@ -79,7 +98,7 @@ module.exports = angular
 
     function showPopover() {
       if (!vm.isVisible && !evaluateOuterScopeValue($attrs.isDisabled, false)) {
-        popoverLoaded.then(function(popover) {
+        createElement().then(function(popover) {
           popover.css({display: 'block'});
           if (animation) {
             $animate.addClass(popover, 'in');
@@ -151,14 +170,14 @@ module.exports = angular
     $document.bind('touchend', documentClick);
 
     $scope.$on('$destroy', function() {
-      popoverLoaded.then(function(popover) {
-        popover.remove();
-        $element.unbind('click', togglePopover);
-        $window.removeEventListener('resize', positionPopover);
-        $document.unbind('click', documentClick);
-        $document.unbind('touchend', documentClick);
-        popoverScope.$destroy();
-      });
+      if (popoverElement) {
+        popoverElement.remove();
+      }
+      $element.unbind('click', togglePopover);
+      $window.removeEventListener('resize', positionPopover);
+      $document.unbind('click', documentClick);
+      $document.unbind('touchend', documentClick);
+      popoverScope.$destroy();
     });
 
   })
