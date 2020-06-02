@@ -7,7 +7,7 @@
     <p ng-bind-html="vm.$attrs.message"></p>
     <div class="row">
       <div
-        class="col-xs-6"
+        class="col-sm-6"
         ng-if="!vm.$attrs.hideConfirmButton && !vm.defaults.hideConfirmButton"
         ng-class="{'col-xs-offset-3': vm.$attrs.hideCancelButton || vm.defaults.hideCancelButton}">
         <button
@@ -18,7 +18,7 @@
         </button>
       </div>
       <div
-        class="col-xs-6"
+        class="col-sm-6"
         ng-if="!vm.$attrs.hideCancelButton && !vm.defaults.hideCancelButton"
         ng-class="{'col-xs-offset-3': vm.$attrs.hideConfirmButton || vm.defaults.hideConfirmButton}">
         <button
